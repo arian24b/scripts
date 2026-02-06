@@ -988,6 +988,11 @@ parse_args() {
 # =========================================================
 main() {
   need_root
+  # Allow: curl ... | bash - -h
+  # If first arg is "-", shift it away (bash stdin marker)
+  if [[ "${1:-}" == "-" ]]; then
+    shift
+  fi
   parse_args "$@"
 
   if [[ "$PRINT_INSTALL_PATH" -eq 1 ]]; then
@@ -1014,12 +1019,9 @@ main() {
     self_uninstall
     exit 0
   fi
-  if [[ -n "$SELF_UPDATE_URL" || -n "$DEFAULT_SELF_UPDATE_URL" ]]; then
-    # Only if user explicitly asked --self-update, or default url is set AND user used --self-update without URL
-    # Detect explicit ask:
-    # We treat having parsed --self-update (with or without URL) as "do it".
-    # If user didn't pass --self-update, SELF_UPDATE_URL empty and we won't run.
-    :
+  if [[ "$SELF_UPDATE_REQUESTED" -eq 1 ]]; then
+    self_update
+    exit 0
   fi
   # If user passed --self-update (with or without URL), update and exit
   # (We detect by presence of arg; simplest: if user used --self-update it sets SELF_UPDATE_URL or leaves it empty but we still want to run)
@@ -1083,6 +1085,11 @@ parse_args() {
 
 main() {
   need_root
+  # Allow: curl ... | bash - -h
+  # If first arg is "-", shift it away (bash stdin marker)
+  if [[ "${1:-}" == "-" ]]; then
+    shift
+  fi
   parse_args "$@"
 
   if [[ "$PRINT_APT" -eq 1 ]]; then
